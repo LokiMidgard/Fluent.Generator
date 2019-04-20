@@ -92,7 +92,7 @@ using Fluent.Net;
             {
                 var id = item.Id.Name;
                 var propName = id.ToCharArray();
-
+                propName[0] = char.ToUpperInvariant(propName[0]);
                 while (propName.Contains('-'))
                 {
                     var index = Array.LastIndexOf(propName, '-');
