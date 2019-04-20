@@ -1,0 +1,39 @@
+﻿<Project TreatAsLocalProperty="TaskFolder;TaskAssembly">
+  <PropertyGroup>
+    <TaskFolder Condition=" '$(MSBuildRuntimeType)' == 'Core' ">netstandard2.0</TaskFolder>
+    <TaskFolder Condition=" '$(MSBuildRuntimeType)' != 'Core' ">net472</TaskFolder>
+    <TaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(TaskFolder)\Fluent.Generator.dll</TaskAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Fluent.Generator.GenerateFtlTask" AssemblyFile="$(TaskAssembly)" />
+
+
+  <!-- create collection for embedded xaml resources -->
+
+  <Target Name="FileterFtl" BeforeTargets="GenerateFtlTask;_UpdateGeneratedFiles3">
+    <CreateItem Include="@(EmbeddedResource)" Condition="'%(Extension)' == '.ftl'">
+      <Output TaskParameter="Include" ItemName="EmbeddedFtlResource"/>
+    </CreateItem>
+  </Target>
+
+  <Target Name="GenerateFtlTask"
+          DependsOnTargets="_UpdateGeneratedFiles3"
+          BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)GeneratedFtlFile.g.cs" />
+      <!-- see https://mhut.ch/journal/2016/04/19/msbuild_code_generation_vs2015
+    <FileWrites Include="$(IntermediateOutputDir)GeneratedFtlFile.g.cs" />
+    -->
+    </ItemGroup>
+  </Target>
+  <Target Name="_UpdateGeneratedFiles3"
+          BeforeTargets="CoreCompile"
+          Inputs="$(RootNamespace);@(EmbeddedFtlResource)"
+          Outputs="$(IntermediateOutputPath)GeneratedFtlFile.g.cs">
+    <GenerateFtlTask
+        Inputs="$(RootNamespace);@(EmbeddedFtlResource)"
+        Output="$(IntermediateOutputPath)GeneratedFtlFile.g.cs"  />
+  </Target>
+
+
+</Project>
