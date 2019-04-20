@@ -11,6 +11,10 @@
 Set the type of the FTL file to Emmbedded Resource and set the `Custom Tool` to `MSBuild:GenerateFtlTask`.</Description>
     <Copyright>Patrick Kranz</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/LokiMidgard/Fluent.Generator</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/LokiMidgard/Fluent.Generator.git</RepositoryUrl>
+    <PackageTags>Fluent; translation; globalization</PackageTags>
   </PropertyGroup>
 
 
