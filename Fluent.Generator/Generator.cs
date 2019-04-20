@@ -63,21 +63,22 @@ using Fluent.Net;
                 var assembly = typeof({name}).Assembly;
                 var names = assembly.GetManifestResourceNames();
                 string correctResurce = null;
+                var currentCulture = cultureValue;
                 while (correctResurce == null)
                 {{
-                    var currentResource = $""{{resourceName}}{{(string.IsNullOrEmpty(cultureValue.Name) ? """" : ""."") }}{{cultureValue.Name}}.ftl"";
+                    var currentResource = $""{{resourceName}}{{(string.IsNullOrEmpty(currentCulture.Name) ? """" : ""."") }}{{currentCulture.Name}}.ftl"";
                     if (names.Contains(currentResource))
                         correctResurce = currentResource;
-                    else if (cultureValue.Equals(CultureInfo.InvariantCulture))
+                    else if (currentCulture.Equals(CultureInfo.InvariantCulture))
                         throw new FileNotFoundException(""Resource not found"",currentResource);
-                    cultureValue = cultureValue.Parent;
+                    currentCulture = currentCulture.Parent;
                 }}
 
                 FluentResource fluentResource;
                 using (var stream = assembly.GetManifestResourceStream(correctResurce))
                     using (var reader = new StreamReader(stream))
                     {{
-                        fluentResource = FluentResource.FromReader(null);
+                        fluentResource = FluentResource.FromReader(reader);
                     }}
 
                 ctx.AddResource(fluentResource);
