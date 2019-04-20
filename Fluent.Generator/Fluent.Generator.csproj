@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>Patrick Kranz</Authors>
     <Product />
     <Description>This tool generates design classes of ftl files.
