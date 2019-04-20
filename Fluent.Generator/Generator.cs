@@ -65,9 +65,12 @@ using Fluent.Net;
                 string correctResurce = null;
                 while (correctResurce == null)
                 {{
-                    var currentResource = $""{{resourceName}}.{{cultureValue.Name}}.ftl"";
+                    var currentResource = $""{{resourceName}}{{(string.IsNullOrEmpty(cultureValue.Name) ? """" : ""."") }}{{cultureValue.Name}}.ftl"";
                     if (names.Contains(currentResource))
                         correctResurce = currentResource;
+                    else if (cultureValue.Equals(CultureInfo.InvariantCulture))
+                        throw new FileNotFoundException(""Resource not found"",currentResource);
+                    cultureValue = cultureValue.Parent;
                 }}
 
                 FluentResource fluentResource;
