@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Fluent.Net.Ast;
 
 namespace Fluent.Generator
@@ -10,7 +11,7 @@ namespace Fluent.Generator
     internal partial class Generator
     {
 
-
+        private static readonly Regex translationRegex = new Regex(@"\.\w\w(-\w\w)?\.ftl$");
 
         public static string Generat(string rootNamespace, IEnumerable<string> ftlFiles)
         {
@@ -24,7 +25,7 @@ using System.Threading;
 using Fluent.Net;
 ");
 
-            foreach (var f in ftlFiles)
+            foreach (var f in ftlFiles.Where(x => !translationRegex.IsMatch(x)))
             {
                 var name = Path.GetFileNameWithoutExtension(f);
                 var parent = rootNamespace + "." + Path.GetDirectoryName(f).Replace('\\', '.');
