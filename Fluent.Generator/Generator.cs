@@ -59,7 +59,8 @@ using Fluent.Net;
             if (culture.Value != CultureInfo.CurrentUICulture)
             {{
                 var cultureValue = CultureInfo.CurrentUICulture;
-                var ctx = new MessageContext(cultureValue.Name);
+                var ctx = new MessageContext(cultureValue.Name, new MessageContextOptions()
+                {{ UseIsolating = false}});
                 var assembly = typeof({name}).Assembly;
                 var names = assembly.GetManifestResourceNames();
                 string correctResurce = null;
