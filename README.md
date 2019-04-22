@@ -32,7 +32,8 @@ var seccondString = TestFtl.SharedPhotos[userName:"Bob", photoCount:3, userGende
 ```
 
 ## ToDo
- - [ ] support control of unicode isolataion marks
+ - [x] support control of unicode isolataion marks
+ - [ ] Display comments on Propertys
  - [ ] Isolate the generation of files so we can actually have some dependecys
    Currently Fluent.net is put inside the nuget and Roslyn code to generate was droped :(
  - [ ] Not sure if the current approach works cross platform

@@ -41,6 +41,14 @@ using Fluent.Net;
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Controls use of [unicode isolating marks](https://www.w3.org/International/questions/qa-bidi-unicode-controls). Can be overridden on a per thread level using <see cref="UnicodeIsolationCurrentThread"/>.
+        /// </summary>
+        public static bool UnicodeIsolationGlobal { get; set; } = true;
+        /// <summary>
+        /// Controls use of [unicode isolating marks](https://www.w3.org/International/questions/qa-bidi-unicode-controls) for the current Thread. If <c>null</c> <see cref="UnicodeIsolationGlobal"/> will be used.
+        /// </summary>
+        public static bool UnicodeIsolationCurrentThread { get; set; } = true;
 
         public static void Test(StringBuilder stringBuilder, string name, string @namespace, TextReader ftl)
         {
@@ -55,13 +63,28 @@ using Fluent.Net;
         private const string resourceName = ""{@namespace}.{name}"";
         private static readonly ThreadLocal<CultureInfo> culture = new ThreadLocal<CultureInfo>(() => null);
         private static readonly ThreadLocal<MessageContext> context = new ThreadLocal<MessageContext>(() => null);
+        private static readonly ThreadLocal<bool?> targetIsolation = new ThreadLocal<bool?>(() => null);
+        private static readonly ThreadLocal<bool?> currentIsolation = new ThreadLocal<bool?>(() => null);
+
+        /// <summary>
+        /// Controls use of [unicode isolating marks](https://www.w3.org/International/questions/qa-bidi-unicode-controls). Can be overridden on a per thread level using <see cref=""UnicodeIsolationCurrentThread""/>.
+        /// </summary>
+        public static bool UnicodeIsolationGlobal {{get; set;}} = true; 
+        
+        /// <summary>
+        /// Controls use of [unicode isolating marks](https://www.w3.org/International/questions/qa-bidi-unicode-controls) for the current Thread. If <c>null</c> <see cref=""UnicodeIsolationGlobal""/> will be used.
+        /// </summary>
+        public static bool? UnicodeIsolationCurrentThread {{get => targetIsolation.Value; set => targetIsolation.Value = value;}} 
+
+
         private static MessageContext GetContext()
         {{
-            if (culture.Value != CultureInfo.CurrentUICulture)
+            bool newTargetIsolation = targetIsolation.Value ?? GlobalIsolation;
+            if (culture.Value != CultureInfo.CurrentUICulture || currentIsolation.Value != newTargetIsolation)
             {{
                 var cultureValue = CultureInfo.CurrentUICulture;
                 var ctx = new MessageContext(cultureValue.Name, new MessageContextOptions()
-                {{ UseIsolating = false}});
+                {{ UseIsolating = newTargetIsolation}});
                 var assembly = typeof({name}).Assembly;
                 var names = assembly.GetManifestResourceNames();
                 string correctResurce = null;
@@ -86,6 +109,7 @@ using Fluent.Net;
                 ctx.AddResource(fluentResource);
                 context.Value = ctx;
                 culture.Value = cultureValue;
+                currentIsolation.Value = newTargetIsolation;
             }}
 
             return context.Value;
