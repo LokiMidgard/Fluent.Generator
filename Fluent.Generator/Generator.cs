@@ -229,6 +229,9 @@ public struct {propertyName}Wrapper
                 case SelectExpression selectExpression:
                     return GetVariables(selectExpression.Selector)
                         .Concat(selectExpression.Variants.SelectMany(x => GetVariables(x.Value)));
+                case Fluent.Net.Ast.CallExpression callExpression:
+                    return callExpression.Named.Select<NamedArgument, SyntaxNode>(x => x.Value).Concat(callExpression.Positional).SelectMany(GetVariables);
+
                 default:
                     return Enumerable.Empty<string>();
             }
