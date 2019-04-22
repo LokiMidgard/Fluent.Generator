@@ -79,7 +79,7 @@ using Fluent.Net;
 
         private static MessageContext GetContext()
         {{
-            bool newTargetIsolation = targetIsolation.Value ?? GlobalIsolation;
+            bool newTargetIsolation = targetIsolation.Value ?? UnicodeIsolationGlobal;
             if (culture.Value != CultureInfo.CurrentUICulture || currentIsolation.Value != newTargetIsolation)
             {{
                 var cultureValue = CultureInfo.CurrentUICulture;
@@ -118,9 +118,10 @@ using Fluent.Net;
 
 
             var enumerable = result.Body.OfType<Message>().ToArray();
-            foreach (var item in enumerable)
+            foreach (var message in enumerable)
             {
-                var id = item.Id.Name;
+                var id = message.Id.Name;
+                var comment = message.Comment;
                 var propName = id.ToCharArray();
                 propName[0] = char.ToUpperInvariant(propName[0]);
                 while (propName.Contains('-'))
@@ -136,7 +137,7 @@ using Fluent.Net;
                 var prop = new string(propName);
                 prop = prop.Replace(((char)0).ToString(), "");
 
-                var variables = GetVariables(item.Value).Distinct().ToArray();
+                var variables = GetVariables(message.Value).Distinct().ToArray();
                 if (variables.Length > 0)
                 {
 
