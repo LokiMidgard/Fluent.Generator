@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <Authors>Patrick Kranz</Authors>
     <Product />
     <Description>This tool generates design classes of ftl files.
@@ -36,18 +36,34 @@ Set the type of the FTL file to Emmbedded Resource and set the `Custom Tool` to 
   </ItemGroup>
 
 
-  <Target Name="PackTaskDependencies1" BeforeTargets="GenerateNuspec">
+  <Target Name="PackTaskDependencies1" BeforeTargets="GenerateNuspec" >
+    <!--
+    The include needs to happen after output has been copied to build output folder
+    but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
+    -->
+
+    <ItemGroup >
+      <_PackageFiles Include="bin\$(Configuration)\net472\Fluent.Net.dll">
+        <PackagePath>tasks\net472</PackagePath>
+        <Visible>false</Visible>
+        <BuildAction>Content</BuildAction>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PackTaskDependencies2" BeforeTargets="GenerateNuspec"  >
     <!--
     The include needs to happen after output has been copied to build output folder
     but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
     -->
     <ItemGroup>
-      <_PackageFiles Include="bin\$(Configuration)\*\Fluent.Net.dll">
-        <PackagePath>tasks\%(RecursiveDir)</PackagePath>
+      <_PackageFiles Include="bin\$(Configuration)\net472\Fluent.Net.dll">
+        <PackagePath>tasks\netstandard2.0</PackagePath>
         <Visible>false</Visible>
         <BuildAction>Content</BuildAction>
       </_PackageFiles>
     </ItemGroup>
+   
   </Target>
   
 </Project>
