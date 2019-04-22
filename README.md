@@ -33,9 +33,34 @@ var firstString = TestFtl.HelloWorld;
 var seccondString = TestFtl.SharedPhotos[userName:"Bob", photoCount:3, userGender:"male"];
 ```
 
+## Parameter Type
+
+Fluent.Generator trys to guess the type of parameters.
+```
+# $duration (Number) - The duration in seconds.
+time-elapsed = Time elapsed: { $duration }s.
+```
+
+will result in
+
+```
+public string this[System.Double duration]
+            {
+                get
+                {
+                    return this.messageContext.Format(this.messageContext.GetMessage("time-elapsed"), new Dictionary<string, object>{{"duration", duration}});
+                }
+            }
+```
+
+In order to get correct types, you need to document those in the comments. If a line in the comments start with `$<variable name>` followed by the type in round parenthise `()` followed by a dash `-` and the variable exists
+we'll set the parameter type to the provided. You can use .Net types and the string `Number` which will interpreted as double.
+
+You can ommit the type and the parethisees. In that case the object type is used.
+
 ## ToDo
  - [x] support control of unicode isolataion marks
- - [ ] Display comments on Propertys
+ - [x] Display comments on Propertys
  - [ ] Isolate the generation of files so we can actually have some dependecys
    Currently Fluent.net is put inside the nuget and Roslyn code to generate was droped :(
  - [ ] Not sure if the current approach works cross platform

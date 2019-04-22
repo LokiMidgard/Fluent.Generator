@@ -138,10 +138,14 @@ using Fluent.Net;
                 prop = prop.Replace(((char)0).ToString(), "");
 
                 var variables = GetVariables(message.Value).Distinct().ToArray();
+
+                var commentData = GenerateDoc(variables, comment.Content);
+
                 if (variables.Length > 0)
                 {
 
-                    ComplexMessageStruct(stringBuilder, id, prop, variables);
+                    ComplexMessageStruct(stringBuilder, id, prop, variables, commentData);
+                    WriteComment(stringBuilder, commentData, false);
                     GetComplexProperty(stringBuilder, prop);
                 }
                 else
@@ -154,8 +158,44 @@ using Fluent.Net;
             stringBuilder.AppendLine("}\n}");
         }
 
+        private static void WriteComment(StringBuilder stringBuilder, (string comment, (string name, Type type, string comment)[] parameter) commentData, bool writeParameter)
+        {
+            if (commentData.comment != null)
+            {
+                stringBuilder.AppendLine("/// <summary>");
+                WritePrefixedLines(commentData.comment);
+                stringBuilder.AppendLine("/// </summary>");
+            }
+
+            if (writeParameter)
+            {
+                foreach (var parameter in commentData.parameter)
+                {
+                    stringBuilder.AppendLine($@"/// <param name=""{parameter.name}"">");
+                    WritePrefixedLines(parameter.comment);
+                    stringBuilder.AppendLine("/// </param>");
+                }
+            }
+
+            void WritePrefixedLines(string str)
+            {
+                foreach (var item in str.Replace("\r\n", "\n").Split('\n'))
+                    stringBuilder.AppendLine($"/// {item}");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="photoCount"></param>
+        /// <param name="userGender"></param>
+        /// <returns></returns>
+
+
         private static void SimpleProperty(StringBuilder stringBuilder, string propertyName, string messageId)
         {
+
             stringBuilder.AppendLine($"public static string {propertyName} => GetContext().Format(GetContext().GetMessage(\"{messageId}\"));");
         }
 
@@ -164,7 +204,77 @@ using Fluent.Net;
             stringBuilder.AppendLine($"    public static Wrapper.{propertyName}Wrapper {propertyName} => new Wrapper.{propertyName}Wrapper(GetContext());");
         }
 
-        private static void ComplexMessageStruct(StringBuilder stringBuilder, string messageId, string propertyName, string[] variables)
+        private static (string comment, (string name, Type type, string comment)[] parameter) GenerateDoc(string[] variables, string comment)
+        {
+            if (String.IsNullOrWhiteSpace(comment))
+                return (null, new (string name, Type type, string comment)[0]);
+
+            var data = new List<(string name, Type type, StringBuilder comment)>();
+            var normalComment = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(comment))
+            {
+                var lines = comment.Replace("\r\n", "\n").Split('\n');
+                Regex variableFormat = new Regex(@"^\$(?<name>[^ ]+)\s+(\((?<type>[^)]+)\))?\s*-\s*(?<rest>.*)$");
+
+                foreach (var l in lines)
+                {
+                    var match = variableFormat.Match(l);
+                    if (match.Success)
+                    {
+                        var name = match.Groups["name"].Value;
+                        if (variables.Contains(name))
+                        {
+                            var t = match.Groups["type"];
+
+                            data.Add((name, GetTypeFromMatch(t), new StringBuilder(match.Groups["rest"].Value)));
+                        }
+                    }
+                    else if (data.Any())
+                    {
+                        data[data.Count - 1].comment.AppendLine(l);
+                    }
+                    else
+                    {
+                        normalComment.AppendLine(l);
+                    }
+                }
+            }
+            return (normalComment.ToString(), data.Select(x => (x.name, x.type, x.comment.ToString())).ToArray());
+        }
+
+        private static Type GetTypeFromMatch(Group t)
+        {
+            if (!t.Success)
+                return null;
+            switch (t.Value)
+            {
+                case "string":
+                case "String":
+                    return typeof(string);
+
+                case "number":
+                case "Number":
+                    return typeof(double);
+
+                case "int":
+                    return typeof(int);
+
+                case "float":
+                    return typeof(float);
+
+                case "double":
+                    return typeof(double);
+
+                case "long":
+                    return typeof(long);
+
+                default:
+                    return Type.GetType(t.Value, false) ?? typeof(object);
+            }
+
+        }
+
+        private static void ComplexMessageStruct(StringBuilder stringBuilder, string messageId, string propertyName, string[] variables, (string comment, (string name, Type type, string comment)[] parameter) commentData)
         {
 
 
@@ -175,9 +285,15 @@ public struct {propertyName}Wrapper
             public {propertyName}Wrapper(MessageContext messageContext)
             {{
                 this.messageContext = messageContext;
-            }}
+            }}");
 
-            public string this[{string.Join(", ", variables.Select(x => $"object {x}"))}]
+            WriteComment(stringBuilder, commentData, true);
+            stringBuilder.AppendLine($@"
+            public string this[{string.Join(", ", variables.Select(x =>
+            {
+                var type = commentData.parameter.FirstOrDefault(y => x == y.name).type ?? typeof(object);
+                return $"{type.FullName} {x}";
+            }))}]
             {{
                 get
                 {{
