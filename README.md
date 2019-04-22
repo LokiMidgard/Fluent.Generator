@@ -43,7 +43,7 @@ time-elapsed = Time elapsed: { $duration }s.
 
 will result in
 
-```
+```c#
 public string this[System.Double duration]
             {
                 get
